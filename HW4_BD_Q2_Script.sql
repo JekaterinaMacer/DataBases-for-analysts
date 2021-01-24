@@ -1,0 +1,107 @@
+CREATE TABLE VIP_1617
+SELECT user_id , SUM(price) AS VIP
+FROM orders
+  GROUP BY user_id
+HAVING (TIMESTAMPDIFF(DAY,MAX(o_date_year),date('2018-01-01'))) <= 60 AND 
+COUNT(id_o) >=2 AND SUM(price) >= 15000;
+
+SELECT SUM(VIP) 
+FROM VIP_1617;
+
+CREATE TABLE REG_1617
+SELECT user_id , SUM(price) AS REG
+FROM orders
+  GROUP BY user_id
+HAVING (TIMESTAMPDIFF(DAY,MAX(o_date_year),date('2018-01-01'))) <= 60 AND 
+COUNT(id_o) >=2 AND SUM(price) < 15000;
+
+SELECT SUM(REG) 
+FROM REG_1617;
+
+CREATE TABLE NEW_1617
+SELECT user_id , SUM(price) AS NW
+FROM orders
+  GROUP BY user_id
+HAVING (TIMESTAMPDIFF(DAY,MAX(o_date_year),date('2018-01-01'))) <= 60 AND 
+COUNT(id_o) <2;
+
+SELECT SUM(NW) 
+FROM NEW_1617;
+
+CREATE TABLE LOST_VIP_1617
+SELECT user_id , SUM(price) AS LV
+FROM orders
+  GROUP BY user_id
+HAVING (TIMESTAMPDIFF(DAY,MAX(o_date_year),date('2018-01-01'))) > 60 AND 
+COUNT(id_o) >=2 AND SUM(price) >= 15000;
+
+SELECT SUM(LV) 
+FROM LOST_VIP_1617;
+
+CREATE TABLE LR_1617
+SELECT user_id , SUM(price) AS LR
+FROM orders
+  GROUP BY user_id
+HAVING (TIMESTAMPDIFF(DAY,MAX(o_date_year),date('2018-01-01'))) > 60 AND 
+COUNT(id_o) >=2 AND SUM(price) < 15000;
+
+SELECT SUM(LR) 
+FROM LR_1617;
+
+CREATE TABLE LN_1617
+SELECT user_id , SUM(price) AS LNEW
+FROM orders
+  GROUP BY user_id
+HAVING (TIMESTAMPDIFF(DAY,MAX(o_date_year),date('2018-01-01'))) > 60 AND 
+COUNT(id_o) <2;
+
+SELECT SUM(LNEW) 
+FROM LN_1617;
+
+
+ALTER TABLE orders ADD COLUMN RFM VARCHAR(50) DEFAULT NULL;
+
+SELECT user_id, CASE WHEN (TIMESTAMPDIFF(DAY,MAX(o_date_year),date('2018-01-01'))) <= 60 AND 
+COUNT(id_o) >=2 AND SUM(price) >= 15000 THEN 'VIP'
+WHEN (TIMESTAMPDIFF(DAY,MAX(o_date_year),date('2018-01-01'))) <= 60 AND 
+COUNT(id_o) >=2 AND SUM(price) < 15000 THEN 'REG'
+WHEN (TIMESTAMPDIFF(DAY,MAX(o_date_year),date('2018-01-01'))) <= 60 AND 
+COUNT(id_o) <2 THEN 'NEW'
+WHEN (TIMESTAMPDIFF(DAY,MAX(o_date_year),date('2018-01-01'))) > 60 AND 
+COUNT(id_o) >=2 AND SUM(price) >= 15000 THEN 'LOST_VIP'
+WHEN (TIMESTAMPDIFF(DAY,MAX(o_date_year),date('2018-01-01'))) > 60 AND 
+COUNT(id_o) >=2 AND SUM(price) < 15000 THEN 'LOST_REG'
+ ELSE 'LOST_NEW' END AS RFM 
+FROM orders
+  GROUP BY user_id;
+
+ SELECT COUNT(user_id) VIP
+ FROM RFM_A_2_YEARS
+ WHERE RFM = 'VIP'
+ 
+ union ALL
+ 
+SELECT COUNT(user_id) REG
+ FROM RFM_A_2_YEARS
+ WHERE RFM = 'REG';
+ 
+SELECT COUNT(user_id) N
+ FROM RFM_A_2_YEARS
+ WHERE RFM = 'NEW';
+ 
+SELECT COUNT(user_id) L_VIP
+ FROM RFM_A_2_YEARS
+ WHERE RFM = 'LOST_VIP'
+ 
+ union ALL
+ 
+SELECT COUNT(user_id) L_REG
+ FROM RFM_A_2_YEARS
+ WHERE RFM = 'LOST_REG';
+ 
+SELECT COUNT(user_id) L_N
+ FROM RFM_A_2_YEARS
+ WHERE RFM = 'LOST_NEW';
+ 
+SELECT COUNT(user_id)
+ FROM RFM_A_2_YEARS;
