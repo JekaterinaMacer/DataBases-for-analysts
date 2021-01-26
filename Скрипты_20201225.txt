@@ -1,0 +1,38 @@
+DROP TABLE IF EXISTS orders_05_3;
+CREATE TABLE orders_05_3
+SELECT user_id, SUM(price)/(TIMESTAMPDIFF(DAY,MIN(o_date),date('2017-07-01')))*31 AS avg_s
+FROM ds.orders_2017_2
+  WHERE date(o_date) < date('2017-07-01')
+  GROUP BY user_id
+HAVING COUNT(id_o) > 2 AND
+(TIMESTAMPDIFF(DAY,Max(o_date),date('2017-07-01'))) <=60;
+
+SELECT SUM(price), 'fact'  -- user_id, SUM(price)/(TIMESTAMPDIFF(DAY,MIN(o_date),date('2017-05-01')))*31 AS avg_s
+FROM ds.orders_2017_2 o 
+  JOIN (SELECT user_id FROM orders_05_3) t
+  ON o.user_id = t.user_id
+  WHERE month(o_date) = 7
+  
+  union ALL --  date(o_date) < date('2017-05-01')
+
+  SELECT SUM(avg_s), 'progn' -- user_id, SUM(price)/(TIMESTAMPDIFF(DAY,MIN(o_date),date('2017-05-01')))*31 AS avg_s
+FROM ds.orders_05_3;
+
+
+CREATE TABLE orders_2017_fo
+SELECT user_id, MIN(id_o) mid
+FROM ds.orders_2017_2
+  GROUP BY user_id;
+
+SELECT  MONTH(o_date), SUM(price) s
+FROM ds.orders_2017_2
+  GROUP BY MONTH(o_date);
+
+SELECT  MONTH(o_date), SUM(price) f_s
+FROM ds.orders_2017_2
+  WHERE id_o IN 
+  (
+  SELECT mid
+  FROM orders_2017_fo
+  )
+  GROUP BY MONTH(o_date);
